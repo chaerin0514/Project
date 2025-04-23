@@ -1,0 +1,64 @@
+import numpy as np
+from sklearn.metrics import accuracy_score
+
+# 닥스훈트 특성 데이터(길이,높이)
+dachshund_length = [77,78,85,83,73,77,73,80]
+dachshund_height = [25,28,29,30,21,22,17,35]
+# 사모예드 특성 데이터(길이,높이)
+samoyed_length = [75,77,86,86,79,83,83,88]
+samoyed_height = [56,57,50,53,60,53,49,61]
+# 닥스훈트 특성 데이터(길이,높이) 평균
+dachshund_length_mean = np.mean(dachshund_length)
+dachshund_height_mean = np.mean(dachshund_height)
+# 사모예드 특성 데이터(길이,높이) 평균
+samoyed_length_mean = np.mean(samoyed_length)
+samoyed_height_mean = np.mean(samoyed_height)
+
+# 학습 데이터 생성
+new_dachshund_length = np.random.normal(dachshund_length_mean,10.0,200)
+new_dachshund_height = np.random.normal(dachshund_height_mean,10.0,200)
+
+new_samoyed_length = np.random.normal(samoyed_length_mean,10.0,200)
+new_samoyed_height = np.random.normal(samoyed_height_mean,10.0,200)
+
+# KNN 알고리즘(분류 : classifier)
+dachshund_data = np.column_stack((new_dachshund_length,new_dachshund_height))
+dachshund_label = np.zeros(len(dachshund_data))     # 닥스훈트는 0으로 레이블링
+
+samoyed_data = np.column_stack((new_samoyed_length,new_samoyed_height))
+samoyed_label = np.ones(len(samoyed_data))          # 사모예드는 1로 레이블링
+
+# 샘플 데이터 생성
+unknown_dog_length = np.round(np.random.normal((np.mean(new_dachshund_length) + np.mean(new_samoyed_length))/2, 10.0, 5), 1)
+unknown_dog_height = np.round(np.random.normal((np.mean(new_dachshund_height) + np.mean(new_samoyed_height))/2, 10.0, 5), 1)
+unknown_dog = np.column_stack((unknown_dog_length, unknown_dog_height))
+
+dog = np.concat((dachshund_data,samoyed_data),axis=0)
+labels = np.concat((dachshund_label,samoyed_label), axis=0)
+
+# 딕셔너리 생성
+dog_classes = {0:"닥스훈트", 1:"사모예드"}
+
+from sklearn.neighbors import KNeighborsClassifier
+k = 5
+knn = KNeighborsClassifier(n_neighbors=k)
+knn.fit(X=dog,y=labels)
+print(f"훈련 정확도 : {knn.score(X=dog, y=labels)}")
+
+y_predict = knn.predict(unknown_dog)
+
+print("새로운 강아지 데이터")
+print(unknown_dog)
+print("="*7,"판정 결과","="*7)
+# 판정결과 출력
+for i in range(0,5):
+    print(f"강아지{i+1}는 {dog_classes[y_predict[i]]}입니다")
+
+import matplotlib.pyplot as plt
+plt.scatter(new_dachshund_length, new_dachshund_height, c='c', marker=".")
+plt.scatter(new_samoyed_length, new_samoyed_height, c='b', marker="*")
+plt.scatter(unknown_dog_length, unknown_dog_height, c='r', marker="^")
+plt.xlabel("Height")
+plt.ylabel("Length")
+plt.legend(["Dachshund", "Samoyed"], loc="upper right")
+plt.show()
