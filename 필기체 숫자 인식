@@ -1,0 +1,16 @@
+import cv2 as cv
+# 모델 불러오기
+good_model = keras.models.load_model("2025_03_27_CNN.keras")
+
+# 이미지 불러오기 및 전처리
+original = cv.imread('test_4.png', cv.IMREAD_GRAYSCALE)
+image = cv.resize(original,(28, 28))
+image = 255 - image
+image = image.astype('float32')
+image = image.reshape(-1, 28, 28, 1)    # 평탄화
+image = image / 255.0
+
+# 예측
+predict_image = good_model.predict(image)
+print(f'그림 이미지 값 : {predict_image}')
+print(f'추정된 숫자 : {predict_image.argmax()}')
