@@ -1,3 +1,4 @@
+import keras
 import cv2 as cv
 # 모델 불러오기
 good_model = keras.models.load_model("2025_03_27_CNN.keras")
