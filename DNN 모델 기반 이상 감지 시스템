@@ -1,0 +1,48 @@
+import serial
+import time
+import numpy as np
+import tensorflow as tf
+
+# 모델 로드
+model = tf.keras.models.load_model("dht11_dnn_model.keras")
+
+# 아두이노 시리얼 통신 설정
+ser = serial.Serial('COM4', 9600, timeout=1)
+
+prev_temp = None
+prev_hum = None
+
+while True:
+    try:
+        # 아두이노에서 데이터 읽기
+        data = ser.readline().decode().strip()
+        if not data:
+            continue
+
+        temp, hum = map(float, data.split(","))
+
+        # 이전 온도 및 습도가 있는 경우에만 예측 진행
+        if prev_temp is not None and prev_hum is not None:
+            # 모델 예측 (현재 온도, 이전 온도, 현재 습도, 이전 습도)
+            input_data = np.array([[temp, prev_temp, hum, prev_hum]])  # (temp, prev_temp, hum, prev_hum)
+            predict = model.predict(input_data, verbose=0)
+
+            print(f"Temp: {temp}, Hum: {hum}")
+
+            # LED 제어
+            if predict[0][0] >= 0.3:
+                ser.write(b'1')  # LED ON
+                print("이상 감지")
+            else:
+                ser.write(b'0')  # LED OFF
+                print("정상")
+
+        # 이전 값 업데이트
+        prev_temp = temp
+        prev_hum = hum
+
+        time.sleep(2)  # 2초 대기
+
+    except Exception as e:
+        print("Error:", e)
+        break
