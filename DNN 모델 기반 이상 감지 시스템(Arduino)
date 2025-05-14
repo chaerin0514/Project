@@ -1,0 +1,41 @@
+#include <DHT.h>
+
+#define DHTPIN 2           // DHT11 센서 연결 핀
+#define DHTTYPE DHT11      // DHT11 센서 사용
+#define RED_PIN 3          // 빨간색 핀
+
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(9600);     // 시리얼 통신 속도 설정
+  dht.begin();            // DHT 센서 초기화
+  pinMode(RED_PIN, OUTPUT);
+}
+
+void loop() {
+  // 온도와 습도 값 읽기
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+
+  if (!isnan(temperature) && !isnan(humidity)) {
+      Serial.print(temperature);
+      Serial.print(",");
+      Serial.println(humidity);
+  }
+  else{
+    Serial.println("Sensor Error");
+    return;
+  }
+
+  if (Serial.available() > 0) {
+        char data = Serial.read();
+        if (data == '1') {
+            digitalWrite(RED_PIN, HIGH);  // LED ON
+        } else if (data == '0') {
+            digitalWrite(RED_PIN, LOW);   // LED OFF
+        }
+    }
+
+  // 2초 간격으로 데이터 측정
+  delay(2000);
+}
