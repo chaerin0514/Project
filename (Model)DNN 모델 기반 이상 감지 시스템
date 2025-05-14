@@ -1,0 +1,50 @@
+import numpy as np
+import tensorflow as tf
+import keras
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.layers import Dense
+from tensorflow.keras import Sequential
+import matplotlib.pyplot as plt
+
+# 랜덤한 온도와 습도 데이터 생성
+np.random.seed(42)
+num_samples = 1500
+temp = np.random.rand(num_samples) * 50  # 0~50도 온도
+hum = np.random.rand(num_samples) * 100  # 0~100% 습도
+print(temp)
+print(hum)
+
+# 이전 온도 및 습도 생성 (현재보다 낮은 값으로 설정)
+previous_temp = temp - np.random.rand(num_samples) * 6
+previous_hum = hum - np.random.rand(num_samples) * 15
+print(previous_temp)
+print(previous_hum)
+
+# 입력 데이터 (현재 온도, 이전 온도, 현재 습도, 이전 습도)
+X = np.column_stack((temp, previous_temp, hum, previous_hum))
+# 이전 온도보다 5도 이상 증가하거나 이전 습도보다 5% 이상 증가하면 1, 아니면 0
+y = ((temp - previous_temp >= 5) | (hum - previous_hum >= 5)).astype(int)
+
+# 데이터셋 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+DNN 모델
+model = Sequential()
+model.add(Dense(16, activation='relu', input_shape=(4,)))
+model.add(Dense(8, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
+
+모델 컴파일 및 학습
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+history = model.fit(X_train, y_train, epochs=500, batch_size=16, validation_data=(X_test, y_test))
+print(f"예측 정확도 : {model.evaluate(X_test, y_test)}")
+
+# 시각화
+plt.plot(history.history['accuracy'], color='b', label='accuracy')
+plt.plot(history.history['loss'], color='r', label='loss')
+plt.xlabel('Epoch')
+plt.legend(loc='lower left')
+plt.show()
+
+# 모델 저장
+model.save("dht11_dnn_model.keras")
